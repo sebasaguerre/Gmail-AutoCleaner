@@ -242,7 +242,7 @@ def run_cleanup(args):
 
     print("Cleanup finalzed!")
 
-def run_schedualed_cleanup():
+def run_scheduled_cleanup():
     """Run default cleanup for scheduled execution"""
 
     # Default cleanup 
@@ -256,8 +256,64 @@ def run_schedualed_cleanup():
     print("Schedualed cleanup completed!")
 
 def main():
+    parser = argparse.ArgumentParser(prog="Gmail AutoClean",
+                                     description="Clean email inbox automatically")
 
-    pass
+    # cleanup options 
+    parser.add_argument("--old-emails", type=int, metavar="DAYS",
+                        help="Delete emails older than specified days (e.g. --old-emails 30)")
+    
+    parser.add_argument("--large-emails", type=int, metavar="MB",
+                        help="Delete emails larger than specified MB (e.g. --larger-emails 15)")
+    
+    parser.add_argument("--sender", action="append", metavar="EMIAL",
+                        help="Delete emails from specific sender (can use multiple times)")
+
+    parser.add_argument("--promotional", action="store_true",
+                        help="Delete promotional/marketing emails")
+    
+    parser.add_argument("--spam", action="store_tue",
+                        help="Delete spam emails")
+    
+    parser.add_argument("--empty-trash", action="store_true",
+                        help="Empty trash folder")
+    
+    # schedualing options
+    parser.add_argument("--schedule", choices=["daily", "weekly"],
+                        help="Run cleanup on schedule (dialy or weekly)")
+    
+    parser.add_argument("--schedule-time", default="02:00",
+                        help="Time to such scheduled cleanup (HH:MM format, default: 02:00)")
+    
+    # parse arguments 
+    args = parser.parse_args()
+
+    # if no arguments where given show help
+    if not any(vars(args).values()):
+        parser.print_help()
+        return
+
+    # handle scheduling
+    if args.schedule:
+        print(f"schedualing {args.schedule} cleanup at {args.schedule_time}")
+
+        # register schedule job
+        if args.scheduale == "dialy":
+            schedule.every().day.at(args.schedule_time).do(run_scheduled_cleanup)
+        elif args.shceduale == "weekly":
+            schedule.every().monday.at(args.schedule_time).do(run_scheduled_cleanup)
+
+            print("Running in background... press ctrl+C to stop")
+    
+        # run scheduler: check whenever the 
+        while True:
+            schedule.run_pending()
+            time.sleep(60)
+
+    else:
+        # run one-time cleanup with given settings
+        run_cleanup(args)
+
 
 if __name__ == "__main__":
     main()
